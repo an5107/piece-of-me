@@ -17,8 +17,9 @@
     <a class="wordmark" href="#home" aria-label="Piece of Me home">P/M<span>.</span></a>
     <nav aria-label="Main navigation">
       <a href="#real-dirty-me">01 / Spill</a>
-      <a href="#on-display">02 / Keep</a>
-      <a href="#my-mixtape">03 / Soundtrack</a>
+      <a href="#gold-mining">02 / Mine</a>
+      <a href="#on-display">03 / Keep</a>
+      <a href="#my-mixtape">04 / Soundtrack</a>
     </nav>
     <span class="local-note"><span class="status-dot" aria-hidden="true"></span> YOURS, AND YOURS ONLY</span>
   </header>
@@ -59,11 +60,27 @@
       </div>
     </section>
 
+    <section class="section gold-section" id="gold-mining" aria-labelledby="gold-title">
+      <div class="section-heading">
+        <div class="section-number">02 — THE GOOD STUFF, HIDING IN PLAIN SIGHT</div>
+        <h2 id="gold-title">Gold<br><span class="serif">Mining.</span></h2>
+        <p class="section-intro">There's gold in the dirt.</p>
+        <p class="gold-explainer">Insights, original ideas, recurring desires, and ways of seeing—beside the words they came from. Your writing stays yours, exactly as you wrote it.</p>
+      </div>
+      <div class="gold-workspace">
+        <div class="demo-banner"><span class="demo-stamp">DEMO ONLY</span><p>These illustrative examples are not AI extraction. No real insight mining is running yet.</p></div>
+        <div class="entries-header gold-entries-header"><span>ILLUSTRATIVE GOLD PIECES</span><span id="gold-count" class="mono-label">00 PIECES</span></div>
+        <div id="gold-list" class="gold-list" aria-live="polite"></div>
+        <p id="gold-empty" class="empty-state">No demo pieces right now. Your raw notes are still here, untouched.</p>
+      </div>
+    </section>
+
     <section class="section display-section" id="on-display" aria-labelledby="display-title">
       <div class="section-heading">
-        <div class="section-number">02 — THE KEEPERS</div>
+        <div class="section-number">03 — THE KEEPERS</div>
         <h2 id="display-title">On<br><span class="serif">Display.</span></h2>
         <p class="section-intro">A few things worth keeping close.</p>
+        <p class="display-note">Curated insights and raw entries live side by side. Save any original thought directly from Real Dirty Me, whenever you like.</p>
       </div>
       <div class="display-workspace">
         <div class="entries-header"><span>YOUR PERSONAL GALLERY</span><span id="display-count" class="mono-label">00 PIECES</span></div>
@@ -74,9 +91,10 @@
 
     <section class="section mixtape-section" id="my-mixtape" aria-labelledby="mixtape-title">
       <div class="section-heading">
-        <div class="section-number">03 — THE YEAR IN SOUND</div>
+        <div class="section-number">04 — THE YEAR IN SOUND</div>
         <h2 id="mixtape-title">My<br><span class="serif">Mixtape.</span></h2>
         <p class="section-intro">Twelve months. One album. Your life in the liner notes.</p>
+        <p class="mixtape-raw-note">The album belongs to the whole page: every raw entry, not only the pieces you mine or display.</p>
       </div>
       <div class="album-area">
         <div class="album-art" aria-label="A vinyl record representing your annual album">
@@ -86,7 +104,7 @@
         <div class="album-details">
           <div class="album-year-row"><span class="mono-label">PERSONAL ALBUM</span><label for="album-year" class="visually-hidden">Choose album year</label><select id="album-year" class="year-select" aria-label="Choose album year"></select></div>
           <h3 id="album-title">The Year, So Far</h3>
-          <p class="album-caption">12 tracks · 03:00 each · your own rotation</p>
+          <p id="album-entry-count" class="album-caption">12 tracks · 03:00 each · your own rotation</p>
           <div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Physical album ordering is a preview only. No orders or payments are processed here.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE IDEA ↗</button></div>
         </div>
       </div>

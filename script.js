@@ -8,6 +8,13 @@
     'Seasonal Beats': ['First Light', 'Heatwave', 'Autumn Static', 'Cold Front'],
     'Guest Producers': ['M. Rivers', 'June Park', 'The Quiet Ones']
   };
+  // Fictional, explicitly labeled examples demonstrate the Gold Mining UI only.
+  // They are not produced from a person's entries or by an AI service.
+  const goldDemo = [
+    { id: 'demo-gold-01', insight: 'A slower start keeps finding its way back to you.', sourceText: 'I keep saying I want a quiet morning, then I fill every minute before I even get out of bed.' },
+    { id: 'demo-gold-02', insight: 'Making things with your hands sounds like a kind of home.', sourceText: 'I miss making things just because I want to see what happens, not because anyone asked for it.' },
+    { id: 'demo-gold-03', insight: 'You want room to change your mind without a speech.', sourceText: 'I wish I could say no to the plan and not have to turn it into a whole explanation.' }
+  ];
 
   // Array-backed LIFO stack: push and pop are O(1) amortized; removing a
   // specifically chosen entry is O(n), since later items must shift left.
@@ -28,6 +35,7 @@
 
   const nowYear = new Date().getFullYear();
   let galleryIds = new Set();
+  let goldPieces = [];
   let beatSelections = {};
   let albumYear = nowYear;
   let storageAvailable = true;
@@ -37,6 +45,9 @@
   const formStatus = document.querySelector('#form-status');
   const entriesList = document.querySelector('#entries-list');
   const entriesEmpty = document.querySelector('#entries-empty');
+  const goldList = document.querySelector('#gold-list');
+  const goldEmpty = document.querySelector('#gold-empty');
+  const goldCount = document.querySelector('#gold-count');
   const displayList = document.querySelector('#display-list');
   const displayEmpty = document.querySelector('#display-empty');
   const displayCount = document.querySelector('#display-count');
@@ -45,18 +56,24 @@
   const yearSelect = document.querySelector('#album-year');
   const recordYear = document.querySelector('#record-year');
   const albumTitle = document.querySelector('#album-title');
+  const albumEntryCount = document.querySelector('#album-entry-count');
   const benchmarkResults = document.querySelector('#benchmark-results');
 
   function loadState() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      const entries = Array.isArray(saved.entries) ? saved.entries.filter(entry => entry && typeof entry.id === 'string' && typeof entry.text === 'string' && typeof entry.createdAt === 'string') : [];
+      const savedEntries = Array.isArray(saved.entries) ? saved.entries.filter(entry => entry && typeof entry.id === 'string' && typeof entry.text === 'string' && typeof entry.createdAt === 'string') : [];
       galleryIds = new Set(Array.isArray(saved.galleryIds) ? saved.galleryIds.filter(id => typeof id === 'string') : []);
       beatSelections = saved.beatSelections && typeof saved.beatSelections === 'object' && !Array.isArray(saved.beatSelections) ? saved.beatSelections : {};
-      return new Stack(entries);
+      const savedGold = Array.isArray(saved.goldPieces) ? saved.goldPieces.filter(piece => piece && typeof piece.id === 'string' && typeof piece.insight === 'string' && typeof piece.sourceText === 'string' && ['pending', 'saved', 'dismissed'].includes(piece.status)) : null;
+      // Existing browsers receive the demo once. Subsequent choices (including
+      // dismissal) persist, and never affect the raw entry stack.
+      goldPieces = savedGold || goldDemo.map(piece => ({ ...piece, sourceId: null, status: 'pending', demo: true }));
+      return new Stack(savedEntries);
     } catch (error) {
       storageAvailable = false;
       formStatus.textContent = 'Local storage is unavailable. Entries may not be saved.';
+      goldPieces = goldDemo.map(piece => ({ ...piece, sourceId: null, status: 'pending', demo: true }));
       return new Stack();
     }
   }
@@ -66,7 +83,7 @@
   function saveState() {
     if (!storageAvailable) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: entries.items, galleryIds: [...galleryIds], beatSelections }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: entries.items, galleryIds: [...galleryIds], beatSelections, goldPieces }));
     } catch (error) {
       storageAvailable = false;
       formStatus.textContent = 'Could not save on this device. Check available browser storage.';
@@ -118,16 +135,81 @@
       card.append(meta, copy, actions);
       entriesList.append(card);
     }
+    renderGold();
     renderDisplay();
     renderAlbumYears();
   }
 
+  function renderGold() {
+    const pending = goldPieces.filter(piece => piece.status === 'pending');
+    goldList.replaceChildren();
+    goldEmpty.hidden = pending.length > 0;
+    goldCount.textContent = `${String(pending.length).padStart(2, '0')} ${pending.length === 1 ? 'PIECE' : 'PIECES'}`;
+    for (const piece of pending) {
+      const card = document.createElement('article');
+      card.className = 'gold-card';
+      const label = document.createElement('div');
+      label.className = 'gold-card-label';
+      const spark = document.createElement('span');
+      spark.className = 'gold-spark';
+      spark.setAttribute('aria-hidden', 'true');
+      spark.textContent = '✳';
+      const labelText = document.createElement('span');
+      labelText.textContent = piece.demo ? 'DEMO GOLD PIECE' : 'GOLD PIECE';
+      label.append(spark, labelText);
+      const insight = document.createElement('p');
+      insight.className = 'gold-insight';
+      insight.textContent = piece.insight;
+      const source = document.createElement('blockquote');
+      source.className = 'gold-source';
+      const sourceLabel = document.createElement('span');
+      sourceLabel.className = 'gold-source-label';
+      sourceLabel.textContent = 'SOURCE NOTE · ORIGINAL WORDS';
+      const sourceText = document.createElement('p');
+      sourceText.textContent = piece.sourceText;
+      source.append(sourceLabel, sourceText);
+      const actions = document.createElement('div');
+      actions.className = 'gold-actions';
+      actions.append(
+        makeTextButton('SAVE TO ON DISPLAY +', () => saveGoldPiece(piece.id)),
+        makeTextButton('DISMISS ×', () => dismissGoldPiece(piece.id))
+      );
+      card.append(label, insight, source, actions);
+      goldList.append(card);
+    }
+  }
+
   function renderDisplay() {
-    const selected = entries.items.filter(entry => galleryIds.has(entry.id)).reverse();
+    const selectedEntries = entries.items.filter(entry => galleryIds.has(entry.id)).reverse();
+    const selectedGold = goldPieces.filter(piece => piece.status === 'saved').reverse();
     displayList.replaceChildren();
-    displayEmpty.hidden = selected.length > 0;
-    displayCount.textContent = `${String(selected.length).padStart(2, '0')} ${selected.length === 1 ? 'PIECE' : 'PIECES'}`;
-    for (const entry of selected) {
+    const total = selectedEntries.length + selectedGold.length;
+    displayEmpty.hidden = total > 0;
+    displayCount.textContent = `${String(total).padStart(2, '0')} ${total === 1 ? 'PIECE' : 'PIECES'}`;
+
+    for (const piece of selectedGold) {
+      const card = document.createElement('article');
+      card.className = 'gold-display-card';
+      const meta = document.createElement('div');
+      meta.className = 'entry-meta';
+      meta.textContent = 'GOLD PIECE · DEMO EXAMPLE';
+      meta.append(makeTextButton('REMOVE FROM DISPLAY −', () => removeGoldFromDisplay(piece.id)));
+      const insight = document.createElement('p');
+      insight.className = 'gold-insight';
+      insight.textContent = piece.insight;
+      const source = document.createElement('blockquote');
+      source.className = 'gold-source';
+      const sourceLabel = document.createElement('span');
+      sourceLabel.className = 'gold-source-label';
+      sourceLabel.textContent = 'SOURCE NOTE · ORIGINAL WORDS';
+      const sourceText = document.createElement('p');
+      sourceText.textContent = piece.sourceText;
+      source.append(sourceLabel, sourceText);
+      card.append(meta, insight, source);
+      displayList.append(card);
+    }
+
+    for (const entry of selectedEntries) {
       const card = document.createElement('article');
       card.className = 'display-card';
       const meta = document.createElement('div');
@@ -147,6 +229,30 @@
   function toggleDisplay(id) {
     if (galleryIds.has(id)) galleryIds.delete(id);
     else galleryIds.add(id);
+    saveState();
+    renderEntries();
+  }
+
+  function saveGoldPiece(id) {
+    const piece = goldPieces.find(item => item.id === id);
+    if (!piece || piece.status !== 'pending') return;
+    piece.status = 'saved';
+    saveState();
+    renderEntries();
+  }
+
+  function dismissGoldPiece(id) {
+    const piece = goldPieces.find(item => item.id === id);
+    if (!piece || piece.status !== 'pending') return;
+    piece.status = 'dismissed';
+    saveState();
+    renderEntries();
+  }
+
+  function removeGoldFromDisplay(id) {
+    const piece = goldPieces.find(item => item.id === id);
+    if (!piece || piece.status !== 'saved') return;
+    piece.status = 'pending';
     saveState();
     renderEntries();
   }
@@ -208,6 +314,8 @@
     yearSelect.value = String(albumYear);
     recordYear.textContent = String(albumYear);
     albumTitle.textContent = `The Year, ${albumYear === nowYear ? 'So Far' : 'In Review'}`;
+    const rawCount = entries.items.filter(entry => new Date(entry.createdAt).getFullYear() === albumYear).length;
+    albumEntryCount.textContent = `${rawCount} raw ${rawCount === 1 ? 'entry' : 'entries'} · all notes count · 12 tracks · 03:00 each`;
     renderTracks();
   }
 
@@ -321,5 +429,6 @@
   });
 
   renderEntries();
+  saveState();
   window.setTimeout(runBenchmark, 150);
 })();
