@@ -14,8 +14,6 @@
     { id: 'demo-gold-03', insight: 'You want room to change your mind without a speech.', sourceText: 'I wish I could say no to the plan and not have to turn it into a whole explanation.' }
   ];
 
-  // Array-backed LIFO stack: push and pop are O(1) amortized; removing a
-  // specifically chosen entry is O(n), since later items must shift left.
   class Stack {
     constructor(items = []) { this.items = items; }
     push(item) { return this.items.push(item); }
@@ -92,14 +90,36 @@
       const card = document.createElement('article'); card.className = 'entry-card';
       const meta = document.createElement('div'); meta.className = 'entry-meta';
       const time = document.createElement('time'); time.dateTime = entry.createdAt; time.textContent = dateLabel(entry.createdAt);
-      const index = document.createElement('span'); index.textContent = `NO. ${String(entries.items.indexOf(entry) + 1).padStart(2, '0')}`; meta.append(time, index);
+      const index = document.createElement('span'); index.textContent = `${entry.voice ? 'VOICE NOTE' : 'NO.'} ${String(entries.items.indexOf(entry) + 1).padStart(2, '0')}`; meta.append(time, index);
       const copy = document.createElement('p'); copy.className = 'entry-copy'; copy.textContent = entry.text;
+      card.append(meta, copy);
+      if (entry.voice && entry.audioId) {
+        const audio = document.createElement('audio'); audio.className = 'saved-voice-audio'; audio.controls = true; audio.dataset.audioId = entry.audioId; audio.setAttribute('aria-label', 'Saved original voice recording'); card.append(audio);
+      }
+      if (entry.voice) {
+        const privacy = document.createElement('div'); privacy.className = 'voice-entry-options';
+        privacy.append(makePreference(entry, 'includeInMining', 'INCLUDE IN GOLD MINING'), makePreference(entry, 'includeInMixtape', 'INCLUDE IN MIXTAPE'));
+        card.append(privacy);
+        if (entry.audioId) card.append(makeTextButton('REMOVE ORIGINAL AUDIO', () => removeAudio(entry)));
+      }
       const actions = document.createElement('div'); actions.className = 'entry-actions';
       const isDisplayed = galleryIds.has(entry.id);
       actions.append(makeTextButton(isDisplayed ? 'REMOVE FROM DISPLAY −' : 'ADD TO DISPLAY +', () => toggleDisplay(entry.id)), makeTextButton('DELETE ×', () => deleteEntry(entry.id)));
-      card.append(meta, copy, actions); entriesList.append(card);
+      card.append(actions); entriesList.append(card);
     }
     renderGold(); renderDisplay(); renderAlbumYears();
+    if (window.PieceOfMeVoice) window.PieceOfMeVoice.mountAudioPlayers(entriesList);
+  }
+
+  function makePreference(entry, property, label) {
+    const wrapper = document.createElement('label'); wrapper.className = 'voice-preference';
+    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = entry[property] !== false;
+    checkbox.addEventListener('change', () => { entry[property] = checkbox.checked; saveState(); renderAlbumYears(); });
+    const text = document.createElement('span'); text.textContent = label; wrapper.append(checkbox, text); return wrapper;
+  }
+  function removeAudio(entry) {
+    const audioId = entry.audioId; delete entry.audioId; saveState(); renderEntries();
+    if (window.PieceOfMeVoice) window.PieceOfMeVoice.deleteAudio(audioId);
   }
 
   function renderGold() {
@@ -120,59 +140,52 @@
       card.append(label, insight, source, actions); goldList.append(card);
     }
   }
-
   function renderDisplay() {
     const selectedEntries = entries.items.filter(entry => galleryIds.has(entry.id)).reverse();
     const selectedGold = goldPieces.filter(piece => piece.status === 'saved').reverse();
-    displayList.replaceChildren();
-    const total = selectedEntries.length + selectedGold.length;
-    displayEmpty.hidden = total > 0;
-    displayCount.textContent = `${String(total).padStart(2, '0')} ${total === 1 ? 'PIECE' : 'PIECES'}`;
+    displayList.replaceChildren(); const total = selectedEntries.length + selectedGold.length;
+    displayEmpty.hidden = total > 0; displayCount.textContent = `${String(total).padStart(2, '0')} ${total === 1 ? 'PIECE' : 'PIECES'}`;
     for (const piece of selectedGold) {
       const card = document.createElement('article'); card.className = 'gold-display-card';
       const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.textContent = 'GOLD PIECE · DEMO EXAMPLE'; meta.append(makeTextButton('REMOVE FROM DISPLAY −', () => removeGoldFromDisplay(piece.id)));
       const insight = document.createElement('p'); insight.className = 'gold-insight'; insight.textContent = piece.insight;
-      const source = document.createElement('blockquote'); source.className = 'gold-source';
-      const sourceLabel = document.createElement('span'); sourceLabel.className = 'gold-source-label'; sourceLabel.textContent = 'SOURCE NOTE · ORIGINAL WORDS';
-      const sourceText = document.createElement('p'); sourceText.textContent = piece.sourceText; source.append(sourceLabel, sourceText);
-      card.append(meta, insight, source); displayList.append(card);
+      const source = document.createElement('blockquote'); source.className = 'gold-source'; const sourceLabel = document.createElement('span'); sourceLabel.className = 'gold-source-label'; sourceLabel.textContent = 'SOURCE NOTE · ORIGINAL WORDS';
+      const sourceText = document.createElement('p'); sourceText.textContent = piece.sourceText; source.append(sourceLabel, sourceText); card.append(meta, insight, source); displayList.append(card);
     }
     for (const entry of selectedEntries) {
-      const card = document.createElement('article'); card.className = 'display-card';
-      const meta = document.createElement('div'); meta.className = 'entry-meta'; const time = document.createElement('time'); time.dateTime = entry.createdAt; time.textContent = dateLabel(entry.createdAt);
-      meta.append(time, makeTextButton('TAKE OFF WALL −', () => toggleDisplay(entry.id)));
-      const copy = document.createElement('p'); copy.className = 'entry-copy'; copy.textContent = entry.text;
-      card.append(meta, copy); displayList.append(card);
+      const card = document.createElement('article'); card.className = 'display-card'; const meta = document.createElement('div'); meta.className = 'entry-meta';
+      const time = document.createElement('time'); time.dateTime = entry.createdAt; time.textContent = dateLabel(entry.createdAt); meta.append(time, makeTextButton('TAKE OFF WALL −', () => toggleDisplay(entry.id)));
+      const copy = document.createElement('p'); copy.className = 'entry-copy'; copy.textContent = entry.text; card.append(meta, copy); displayList.append(card);
     }
   }
   function toggleDisplay(id) { if (galleryIds.has(id)) galleryIds.delete(id); else galleryIds.add(id); saveState(); renderEntries(); }
   function saveGoldPiece(id) { const piece = goldPieces.find(item => item.id === id); if (!piece || piece.status !== 'pending') return; piece.status = 'saved'; saveState(); renderEntries(); }
   function dismissGoldPiece(id) { const piece = goldPieces.find(item => item.id === id); if (!piece || piece.status !== 'pending') return; piece.status = 'dismissed'; saveState(); renderEntries(); }
   function removeGoldFromDisplay(id) { const piece = goldPieces.find(item => item.id === id); if (!piece || piece.status !== 'saved') return; piece.status = 'pending'; saveState(); renderEntries(); }
-  function deleteEntry(id) { entries.removeById(id); galleryIds.delete(id); saveState(); renderEntries(); }
-  function undoLatest() { const removed = entries.pop(); if (!removed) return; galleryIds.delete(removed.id); formStatus.textContent = 'Last submission undone.'; saveState(); renderEntries(); }
+  function deleteEntry(id) { const entry = entries.items.find(item => item.id === id); entries.removeById(id); galleryIds.delete(id); saveState(); if (entry && entry.audioId && window.PieceOfMeVoice) window.PieceOfMeVoice.deleteAudio(entry.audioId); renderEntries(); }
+  function undoLatest() { const removed = entries.pop(); if (!removed) return; galleryIds.delete(removed.id); formStatus.textContent = 'Last submission undone.'; saveState(); if (removed.audioId && window.PieceOfMeVoice) window.PieceOfMeVoice.deleteAudio(removed.audioId); renderEntries(); }
 
   form.addEventListener('submit', event => {
     event.preventDefault(); const text = input.value.trim();
     if (!text) { formStatus.textContent = 'Write something first.'; input.focus(); return; }
-    entries.push({ id: makeId(), text, createdAt: new Date().toISOString() }); input.value = ''; formStatus.textContent = 'Dropped. It stays right here.'; saveState(); renderEntries(); input.focus();
+    const voice = window.PieceOfMeVoice ? window.PieceOfMeVoice.takePending() : null;
+    entries.push({ id: makeId(), text, createdAt: new Date().toISOString(), ...(voice ? { voice: true, audioId: voice.audioId || null, includeInMining: true, includeInMixtape: true } : {}) });
+    input.value = ''; formStatus.textContent = voice ? 'Voice note dropped. Original words kept.' : 'Dropped. It stays right here.'; saveState(); renderEntries(); input.focus();
   });
   function makeId() { if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') return globalThis.crypto.randomUUID(); return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`; }
   undoButton.addEventListener('click', undoLatest);
 
   function renderAlbumYears() {
-    const years = new Set([nowYear]);
-    for (const entry of entries.items) { const year = new Date(entry.createdAt).getFullYear(); if (Number.isFinite(year)) years.add(year); }
+    const eligible = entries.items.filter(entry => !entry.voice || entry.includeInMixtape !== false);
+    const years = new Set([nowYear]); for (const entry of eligible) { const year = new Date(entry.createdAt).getFullYear(); if (Number.isFinite(year)) years.add(year); }
     if (!years.has(albumYear)) albumYear = nowYear;
-    yearSelect.replaceChildren();
-    for (const year of [...years].sort((a, b) => b - a)) { const option = document.createElement('option'); option.value = String(year); option.textContent = String(year); yearSelect.append(option); }
-    yearSelect.value = String(albumYear); recordYear.textContent = String(albumYear);
-    albumTitle.textContent = 'Your Life. On Record.';
-    const yearEntries = entries.items.filter(entry => new Date(entry.createdAt).getFullYear() === albumYear);
-    albumEntryCount.textContent = `${yearEntries.length} raw ${yearEntries.length === 1 ? 'thought' : 'thoughts'} across ${new Set(yearEntries.map(entry => new Date(entry.createdAt).getMonth())).size} ${new Set(yearEntries.map(entry => new Date(entry.createdAt).getMonth())).size === 1 ? 'month' : 'months'} · the whole year counts`;
+    yearSelect.replaceChildren(); for (const year of [...years].sort((a, b) => b - a)) { const option = document.createElement('option'); option.value = String(year); option.textContent = String(year); yearSelect.append(option); }
+    yearSelect.value = String(albumYear); recordYear.textContent = String(albumYear); albumTitle.textContent = 'Your Life. On Record.';
+    const yearEntries = eligible.filter(entry => new Date(entry.createdAt).getFullYear() === albumYear);
+    const monthsWithNotes = new Set(yearEntries.map(entry => new Date(entry.createdAt).getMonth())).size;
+    albumEntryCount.textContent = `${yearEntries.length} raw ${yearEntries.length === 1 ? 'thought' : 'thoughts'} across ${monthsWithNotes} ${monthsWithNotes === 1 ? 'month' : 'months'} · the whole year counts`;
     renderTracks(yearEntries);
   }
-
   function renderTracks(yearEntries) {
     trackList.replaceChildren();
     monthNames.forEach((month, index) => {
@@ -198,15 +211,13 @@
   }
   yearSelect.addEventListener('change', () => { albumYear = Number(yearSelect.value) || nowYear; renderAlbumYears(); });
 
-  // Browser benchmark: stack pop versus a full linear scan for each undo.
   function runBenchmark() {
     benchmarkResults.innerHTML = '<span class="benchmark-loading">RUNNING A SMALL TEST…</span>';
     const count = 10000, undoCount = 250, trials = 3, stackTimes = [], linearTimes = [];
     for (let trial = 0; trial < trials; trial += 1) {
       const stack = new Stack(Array.from({ length: count }, (_, id) => ({ id })));
       const stackStart = performance.now(); for (let i = 0; i < undoCount; i += 1) stack.pop(); stackTimes.push(performance.now() - stackStart);
-      const linearItems = Array.from({ length: count }, (_, id) => ({ id, active: true }));
-      const linearStart = performance.now();
+      const linearItems = Array.from({ length: count }, (_, id) => ({ id, active: true })); const linearStart = performance.now();
       for (let undo = 0; undo < undoCount; undo += 1) { let newestActive = -1; for (let i = 0; i < linearItems.length; i += 1) if (linearItems[i].active) newestActive = i; if (newestActive >= 0) linearItems[newestActive].active = false; }
       linearTimes.push(performance.now() - linearStart);
     }
@@ -217,9 +228,7 @@
   function metric(value, label) { const container = document.createElement('div'); container.className = 'benchmark-metric'; const strong = document.createElement('strong'); strong.textContent = value; const caption = document.createElement('span'); caption.textContent = label; container.append(strong, caption); return container; }
   document.querySelector('#benchmark-button').addEventListener('click', runBenchmark);
   const orderDialog = document.querySelector('#order-dialog');
-  document.querySelector('#order-preview').addEventListener('click', () => orderDialog.showModal());
-  document.querySelector('#dialog-close').addEventListener('click', () => orderDialog.close());
-  document.querySelector('#dialog-done').addEventListener('click', () => orderDialog.close());
+  document.querySelector('#order-preview').addEventListener('click', () => orderDialog.showModal()); document.querySelector('#dialog-close').addEventListener('click', () => orderDialog.close()); document.querySelector('#dialog-done').addEventListener('click', () => orderDialog.close());
   orderDialog.addEventListener('click', event => { if (event.target === orderDialog) orderDialog.close(); });
   renderEntries(); saveState(); window.setTimeout(runBenchmark, 150);
 })();

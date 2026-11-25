@@ -2,22 +2,22 @@
 
 **You want a piece of me, right?**
 
-A responsive, browser-local space to spill unfiltered thoughts, find prototype Gold Pieces, keep a personal gallery, and turn the whole year's raw notes into the idea of a twelve-track mixtape. Built with static HTML, CSS, and vanilla JavaScript; no build process, account, backend, or API.
+A responsive, browser-local space for spontaneous unfiltered writing and voice notes, prototype Gold Pieces, a personal gallery, and a year-by-year mixtape. Built with static HTML, CSS, and vanilla JavaScript; no build process, account, backend, or API.
 
-## Sections
+## Sections and features
 
-- **Real Dirty Me:** Timestamped raw entries, newest first; LIFO Stack `push`/`pop` undo; arbitrary delete; direct manual curation to On Display.
-- **Gold Mining:** Quick Finds and a casual Dig Deeper flow, clearly identified as scripted AI prototype demos. Demo text is fictional, does not analyze or rewrite user entries, and can be saved to On Display.
-- **On Display:** Independent gallery for either saved Gold Pieces or any raw entry.
-- **My Mixtape:** Every calendar month is one 03:00 track representing that month's raw thoughts. Twelve locally styled miniature covers form the year album. The annual pressing artwork is generated with CSS, not copied album art; the vinyl sleeve, record and optional CD edition are collectible previews. Beat choices are available for House Beats, Seasonal Beats, and Guest Producers. Song generation and physical ordering are future features, not working services.
-- **Persistence:** Raw notes, gallery selections, Gold Mining choices, and month-by-month beat selections use browser-local storage.
+- **Real Dirty Me:** Type with the placeholder “Come on. Spill it.” and submit with “Drop it.” Or record immediately with “Say it.” Both options are presented together. Text and saved voice transcripts join the same timestamped, newest-first entry Stack; Undo uses `pop`, and entries can be deleted or curated to On Display.
+- **Voice recording:** Uses `getUserMedia` and `MediaRecorder` when supported. Recording starts only after an explicit button press, shows a timer and minimal waveform, and can be stopped, replayed, saved, or discarded. Browser speech recognition is used where available; its transcript is left as recognized and editable, with no intentional profanity filtering or rewriting. Recording requires a compatible browser, microphone access, and normally HTTPS (or localhost). Permission and compatibility errors are shown in the interface.
+- **Optional original audio:** Audio retention is off by default. When enabled, recordings are stored locally in IndexedDB; transcripts and entry metadata remain in localStorage. Users can remove retained audio later. Voice notes have independent checkboxes to exclude them from future Gold Mining or My Mixtape use. Nothing is uploaded. Local browser storage is not a secure vault.
+- **Gold Mining:** Quick Finds and a casual Dig Deeper flow are clearly labeled scripted AI prototype demos. They do not analyze or rewrite user entries.
+- **On Display:** Independent gallery for saved Gold Pieces and any raw text entry.
+- **My Mixtape:** Every calendar month is one 03:00 track representing that month's eligible raw thoughts. Twelve locally styled miniature covers form the year album. The sleeve, vinyl and optional CD edition use original CSS artwork. House Beats, Seasonal Beats, and Guest Producers remain as text-only selections. Music generation and physical ordering are future features, not working services.
+- **Persistence:** Raw notes, gallery selections, Gold Mining choices, beat selections, and voice metadata use browser-local storage; retained original audio uses IndexedDB.
 - **Performance comparison:** A measured browser benchmark compares stack-based undo with a linear scan; results vary by device and browser.
-
-The Mixtape's monthly raw-thought counts are informational. The prototype does not generate audio or submit private notes to a service. Month-to-song transformation and annual physical ordering remain future concepts.
 
 ## Stack and complexity
 
-The raw-entry history is an array-backed LIFO `Stack` in `script.js`. New thoughts use `push`; Undo calls `pop`.
+Raw entries use an array-backed LIFO `Stack` in `script.js`. New thoughts use `push`; Undo calls `pop`.
 
 | Operation | Complexity |
 | --- | --- |
@@ -27,7 +27,7 @@ The raw-entry history is an array-backed LIFO `Stack` in `script.js`. New though
 | Delete arbitrary entry | O(n) search and shifting |
 | Linear-search alternative | O(n) for each undo |
 
-The benchmark creates 10,000 synthetic items, times 250 undo operations for each method, and reports the median of three runs. Setup is outside timed sections. The measurements use synthetic data, not personal notes.
+The benchmark creates 10,000 synthetic items, times 250 undo operations for each method, and reports the median of three runs. Setup is outside timed sections. Measurements use synthetic data, not personal notes.
 
 ## Run locally
 
@@ -37,12 +37,12 @@ Open `index.html`, or serve the project directory with a static server:
 python3 -m http.server 8000
 ```
 
-Visit `http://localhost:8000`.
+Visit `http://localhost:8000`. Microphone access works on secure origins (HTTPS) and localhost, subject to browser support and permission.
 
 ## Deploy to Netlify
 
-Import the repository or manually deploy the project folder. Use repository root (`.`) as the publish directory and leave the build command empty.
+Import the repository or manually deploy the project folder. Use repository root (`.`) as the publish directory and leave the build command empty. Netlify's HTTPS origin supports browser microphone permission prompts.
 
 ## Privacy and external services
 
-Application data remains in browser-local storage; this is not a secure vault against other users of the same browser profile. Gold Mining uses fixed fictional examples and scripted demo choices only. No insight AI or music generation service is connected. Physical album order preview does not collect details or take payments. Space Grotesk and DM Mono load from Google Fonts; system font fallbacks are included in CSS. No personal data or API keys are part of the repository.
+Text, Gold Mining prototype choices, and preference metadata stay in localStorage. Audio is not retained unless users select “Keep original audio on this device”; retained clips stay in IndexedDB and can be removed from an entry. Speech recognition, when offered by the browser, is handled by that browser implementation; behavior and privacy depend on the browser. The app does not intentionally sanitize transcripts and does not send recordings to its own server. Gold Mining examples are fictional and scripted. Music generation and physical album ordering are not connected. Space Grotesk and DM Mono load from Google Fonts; system fallbacks are included. No personal data or API keys are included in the repository.

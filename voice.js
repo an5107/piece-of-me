@@ -1,0 +1,245 @@
+(() => {
+  'use strict';
+
+  const startButton = document.querySelector('#voice-start');
+  const stopButton = document.querySelector('#voice-stop');
+  const saveButton = document.querySelector('#voice-save');
+  const discardButton = document.querySelector('#voice-discard');
+  const panel = document.querySelector('#voice-panel');
+  const stateLabel = document.querySelector('#voice-state');
+  const timerLabel = document.querySelector('#voice-timer');
+  const transcriptStatus = document.querySelector('#voice-transcript-status');
+  const keepAudio = document.querySelector('#keep-audio');
+  const preview = document.querySelector('#voice-preview');
+  const finishedActions = document.querySelector('#voice-finished-actions');
+  const textarea = document.querySelector('#entry-input');
+  const form = document.querySelector('#entry-form');
+  const formStatus = document.querySelector('#form-status');
+  const entriesList = document.querySelector('#entries-list');
+  const DB_NAME = 'piece-of-me-audio';
+  const STORE_NAME = 'recordings';
+  let stream = null;
+  let recorder = null;
+  let chunks = [];
+  let clip = null;
+  let clipUrl = null;
+  let recognition = null;
+  let transcript = '';
+  let startedAt = 0;
+  let timer = null;
+  let pending = null;
+
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) return reject(new Error('Audio storage is unavailable in this browser.'));
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(STORE_NAME)) request.result.createObjectStore(STORE_NAME); };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('Could not open local audio storage.'));
+    });
+  }
+  async function putAudio(id, blob) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      transaction.objectStore(STORE_NAME).put(blob, id);
+      transaction.oncomplete = () => { db.close(); resolve(); };
+      transaction.onerror = () => { db.close(); reject(transaction.error || new Error('Could not save audio on this device.')); };
+      transaction.onabort = () => { db.close(); reject(transaction.error || new Error('Audio save was cancelled.')); };
+    });
+  }
+  async function getAudio(id) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const request = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(id);
+      request.onsuccess = () => { db.close(); resolve(request.result || null); };
+      request.onerror = () => { db.close(); reject(request.error); };
+    });
+  }
+  async function deleteAudio(id) {
+    if (!id) return;
+    try {
+      const db = await openDb();
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        transaction.objectStore(STORE_NAME).delete(id);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+      });
+      db.close();
+    } catch (error) { /* A missing clip does not affect its saved transcript. */ }
+  }
+  function setStatus(message) { transcriptStatus.textContent = message; }
+  function formatTime(milliseconds) {
+    const seconds = Math.floor(milliseconds / 1000);
+    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+  }
+  function clearPreview() {
+    preview.pause(); preview.removeAttribute('src'); preview.load(); preview.hidden = true;
+    if (clipUrl) URL.revokeObjectURL(clipUrl);
+    clipUrl = null;
+  }
+  function showFinished() {
+    startButton.hidden = true;
+    stopButton.hidden = true;
+    finishedActions.hidden = false;
+    preview.hidden = false;
+    clipUrl = URL.createObjectURL(clip);
+    preview.src = clipUrl;
+    stateLabel.textContent = 'READY TO SAVE';
+    document.querySelector('#voice-indicator').classList.remove('is-recording');
+    if (transcript) {
+      textarea.value = transcript.trim();
+      setStatus('Transcript is ready in the text field. Edit it if you like, or keep it exactly as spoken.');
+    } else if (recognitionSupported()) {
+      setStatus('No words came through. Replay, try again, or type your note below.');
+    } else {
+      setStatus('Speech-to-text is not supported here. Type a transcript below, or keep the original audio.');
+    }
+  }
+  function recognitionSupported() { return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition); }
+  function startSpeechRecognition() {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) { setStatus('Recording is working. Speech-to-text is not supported in this browser; you can type below.'); return; }
+    try {
+      recognition = new Recognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = navigator.language || 'en-US';
+      recognition.onresult = event => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const phrase = event.results[i][0].transcript;
+          if (event.results[i].isFinal) transcript += phrase;
+          else interim += phrase;
+        }
+        textarea.value = `${transcript}${interim}`;
+        setStatus(interim ? 'Listening. Speech-to-text is a browser feature; words stay as recognized.' : 'Speech-to-text is on. No cleanup or rewriting.');
+      };
+      recognition.onerror = event => {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') setStatus('Audio recording continues. Browser speech-to-text is unavailable for this take.');
+      };
+      recognition.start();
+      setStatus('Recording. Browser speech-to-text is on where supported.');
+    } catch (error) {
+      setStatus('Audio recording continues. Speech-to-text could not start in this browser.');
+    }
+  }
+  async function beginRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      panel.hidden = false;
+      setStatus('Voice recording is not supported here. Try a current browser over HTTPS, or use the text field.');
+      return;
+    }
+    startButton.disabled = true;
+    panel.hidden = false;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type));
+      recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      chunks = [];
+      transcript = '';
+      textarea.value = '';
+      clearPreview();
+      finishedActions.hidden = true;
+      startButton.hidden = true;
+      stopButton.hidden = false;
+      stateLabel.textContent = 'RECORDING';
+      document.querySelector('#voice-indicator').classList.add('is-recording');
+      recorder.ondataavailable = event => { if (event.data && event.data.size) chunks.push(event.data); };
+      recorder.onerror = () => setStatus('The browser stopped the recording unexpectedly. You can try again.');
+      recorder.onstop = () => {
+        clip = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        if (stream) stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        if (recognition) { try { recognition.stop(); } catch (error) {} recognition = null; }
+        showFinished();
+      };
+      startedAt = Date.now();
+      timerLabel.textContent = '00:00';
+      timer = window.setInterval(() => { timerLabel.textContent = formatTime(Date.now() - startedAt); }, 250);
+      startSpeechRecognition();
+      recorder.start(250);
+    } catch (error) {
+      startButton.disabled = false;
+      panel.hidden = false;
+      const message = error && error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow mic access in browser settings, then try again.' : error && error.name === 'NotFoundError' ? 'No microphone was found. You can still type below.' : 'Could not start the microphone. Check browser permission and try again, or use text.';
+      setStatus(message);
+      stateLabel.textContent = 'MIC UNAVAILABLE';
+    }
+  }
+  function stopRecording() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    else if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
+    if (recognition) { try { recognition.stop(); } catch (error) {} }
+  }
+  function discardRecording() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
+    if (recognition) { try { recognition.abort(); } catch (error) {} recognition = null; }
+    if (clipUrl) URL.revokeObjectURL(clipUrl);
+    clipUrl = null; clip = null; chunks = []; transcript = '';
+    preview.pause(); preview.removeAttribute('src'); preview.load(); preview.hidden = true;
+    textarea.value = '';
+    panel.hidden = true; startButton.hidden = false; startButton.disabled = false; stopButton.hidden = true; finishedActions.hidden = true;
+    document.querySelector('#voice-indicator').classList.remove('is-recording');
+    stateLabel.textContent = 'READY'; timerLabel.textContent = '00:00';
+    setStatus('Recording discarded.');
+  }
+
+  startButton.addEventListener('click', beginRecording);
+  stopButton.addEventListener('click', stopRecording);
+  discardButton.addEventListener('click', discardRecording);
+  saveButton.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    if (!text && !keepAudio.checked) {
+      setStatus('No transcript to save. Type something above, or choose to keep the original audio on this device.');
+      textarea.focus();
+      return;
+    }
+    let audioId = null;
+    if (keepAudio.checked) {
+      try {
+        audioId = `voice-${globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+        await putAudio(audioId, clip);
+      } catch (error) {
+        setStatus('Could not keep audio locally. Uncheck audio retention to save transcript only, or try again.');
+        return;
+      }
+    }
+    pending = { audioId };
+    if (!text) textarea.value = 'Voice recording (transcription unavailable).';
+    // Existing form handler stores the voice note in the same LIFO raw-entry Stack.
+    form.requestSubmit();
+    pending = null;
+    if (formStatus.textContent.startsWith('Dropped.') || formStatus.textContent.startsWith('Voice note dropped.')) discardRecording();
+  });
+
+  function mountAudioPlayers(container) {
+    container.querySelectorAll('audio[data-audio-id]').forEach(async audio => {
+      if (audio.dataset.loaded === 'true') return;
+      audio.dataset.loaded = 'true';
+      try {
+        const blob = await getAudio(audio.dataset.audioId);
+        if (!blob || !audio.isConnected) { if (!blob) audio.replaceWith(makeMissingAudioMessage()); return; }
+        const url = URL.createObjectURL(blob);
+        audio.src = url;
+        audio.addEventListener('emptied', () => URL.revokeObjectURL(url), { once: true });
+      } catch (error) {
+        if (audio.isConnected) audio.replaceWith(makeMissingAudioMessage());
+      }
+    });
+  }
+  function makeMissingAudioMessage() {
+    const message = document.createElement('p'); message.className = 'voice-missing-audio'; message.textContent = 'Original audio is no longer available on this device.'; return message;
+  }
+  const observer = new MutationObserver(() => mountAudioPlayers(entriesList));
+  observer.observe(entriesList, { childList: true, subtree: true });
+  window.PieceOfMeVoice = {
+    takePending: () => pending,
+    mountAudioPlayers,
+    deleteAudio
+  };
+  mountAudioPlayers(entriesList);
+})();

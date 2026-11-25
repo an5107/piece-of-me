@@ -11,8 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="opening.css">
+  <link rel="stylesheet" href="voice.css">
   <script src="script.js" defer></script>
   <script src="gold-mining.js" defer></script>
+  <script src="voice.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -38,18 +40,36 @@
       <form id="entry-form" class="entry-form opening-form">
         <label class="visually-hidden" for="entry-input">Your unfiltered thoughts</label>
         <textarea id="entry-input" rows="3" maxlength="5000" placeholder="Come on. Spill it." required></textarea>
-        <div class="form-bottom"><span class="privacy-copy">NO AUDIENCE. NO FILTER. NO EXPLANATION.</span><button class="button button-light" type="submit">Drop it. <span aria-hidden="true">↗</span></button></div>
+        <div class="form-bottom opening-actions">
+          <span class="privacy-copy">NO AUDIENCE. NO FILTER. NO EXPLANATION.</span>
+          <div class="input-buttons">
+            <button type="button" class="voice-start" id="voice-start" aria-describedby="voice-compatibility"><span class="mic-mark" aria-hidden="true">●</span> Say it.</button>
+            <button class="button button-light" type="submit">Drop it. <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+        <div class="voice-panel" id="voice-panel" hidden>
+          <div class="voice-live-row">
+            <div class="voice-indicator" id="voice-indicator" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <span class="voice-state" id="voice-state">READY</span>
+            <time class="voice-timer" id="voice-timer">00:00</time>
+            <button class="voice-stop" id="voice-stop" type="button" hidden>STOP</button>
+          </div>
+          <p class="voice-transcript-status" id="voice-transcript-status" aria-live="polite">Speech-to-text checks browser support when you start recording.</p>
+          <label class="keep-audio"><input id="keep-audio" type="checkbox"><span>Keep original audio on this device</span></label>
+          <audio id="voice-preview" controls hidden></audio>
+          <div class="voice-finished-actions" id="voice-finished-actions" hidden>
+            <button class="voice-save" id="voice-save" type="button">SAVE RECORDING</button>
+            <button class="voice-discard" id="voice-discard" type="button">DISCARD</button>
+          </div>
+        </div>
+        <p class="voice-compatibility" id="voice-compatibility">Voice recording requires a supported browser and microphone permission. Nothing starts until you tap “Say it.”</p>
         <p id="form-status" class="form-status" aria-live="polite"></p>
       </form>
       <div class="hero-index" aria-hidden="true">PM—001</div>
     </section>
 
     <section class="section confession-section" id="real-dirty-me" aria-labelledby="confession-title">
-      <div class="section-heading">
-        <div class="section-number">01 — THE PRIVATE PAGE</div>
-        <h2 id="confession-title">Real Dirty<br><span class="serif">Me.</span></h2>
-        <p class="section-intro">No audience. No filter. No explanation.</p>
-      </div>
+      <div class="section-heading"><div class="section-number">01 — THE PRIVATE PAGE</div><h2 id="confession-title">Real Dirty<br><span class="serif">Me.</span></h2><p class="section-intro">No audience. No filter. No explanation.</p></div>
       <div class="confession-workspace">
         <div class="entries-header"><span>LATEST FROM THE PAGE</span><button type="button" class="text-button" id="undo-button" disabled>UNDO LAST <span aria-hidden="true">↶</span></button></div>
         <div id="entries-list" class="entries-list" aria-live="polite"></div>
@@ -58,78 +78,34 @@
     </section>
 
     <section class="section gold-section" id="gold-mining" aria-labelledby="gold-title">
-      <div class="section-heading">
-        <div class="section-number">02 — THE GOOD STUFF, HIDING IN PLAIN SIGHT</div>
-        <h2 id="gold-title">Gold<br><span class="serif">Mining.</span></h2>
-        <p class="section-intro">There's gold in the dirt.</p>
-        <p class="gold-explainer">Quick finds from the notes, or a promising thought to kick around. Keep the good bits; leave the rest.</p>
-      </div>
+      <div class="section-heading"><div class="section-number">02 — THE GOOD STUFF, HIDING IN PLAIN SIGHT</div><h2 id="gold-title">Gold<br><span class="serif">Mining.</span></h2><p class="section-intro">There's gold in the dirt.</p><p class="gold-explainer">Quick finds from the notes, or a promising thought to kick around. Keep the good bits; leave the rest.</p></div>
       <div class="gold-workspace">
         <div class="prototype-banner"><span class="prototype-tag">AI PROTOTYPE DEMO</span><p>Sample notes and scripted demo responses only. No AI is connected, and none of your raw notes are analyzed or sent anywhere.</p></div>
-        <div class="gold-function-heading"><span>01 / QUICK FINDS</span><span>SHORT. SHARP. TAKE IT OR LEAVE IT.</span></div>
-        <div id="gold-insights" class="gold-cards"></div>
+        <div class="gold-function-heading"><span>01 / QUICK FINDS</span><span>SHORT. SHARP. TAKE IT OR LEAVE IT.</span></div><div id="gold-insights" class="gold-cards"></div>
         <div class="gold-function-heading dig-heading"><span>02 / THE ROUGH CUT</span><span>ONE PROMISING THOUGHT, A LITTLE MORE ROOM</span></div>
-        <article class="gold-card rough-card" id="rough-card">
-          <div class="gold-card-top"><span class="gold-kind">ROUGH CUT · PROTOTYPE</span><span class="gold-spark" aria-hidden="true">✳</span></div>
-          <p class="gold-insight">“I keep a folder of ideas I swear I'll come back to.”</p>
+        <article class="gold-card rough-card" id="rough-card"><div class="gold-card-top"><span class="gold-kind">ROUGH CUT · PROTOTYPE</span><span class="gold-spark" aria-hidden="true">✳</span></div><p class="gold-insight">“I keep a folder of ideas I swear I'll come back to.”</p>
           <blockquote class="gold-source"><span>DEMO SOURCE NOTE · NOT YOUR WRITING</span><p>I have a folder full of little project ideas. I keep saving them for when I have more time, then I forget which ones I actually liked.</p></blockquote>
-          <div class="rough-actions" id="rough-actions"><button type="button" class="gold-button" id="dig-deeper">Dig Deeper <span aria-hidden="true">↗</span></button><button type="button" class="gold-text-button" id="dismiss-rough">Not this one ×</button></div>
-          <div class="dig-session" id="dig-session" hidden aria-live="polite"></div>
+          <div class="rough-actions" id="rough-actions"><button type="button" class="gold-button" id="dig-deeper">Dig Deeper <span aria-hidden="true">↗</span></button><button type="button" class="gold-text-button" id="dismiss-rough">Not this one ×</button></div><div class="dig-session" id="dig-session" hidden aria-live="polite"></div>
         </article>
       </div>
     </section>
 
     <section class="section display-section" id="on-display" aria-labelledby="display-title">
-      <div class="section-heading">
-        <div class="section-number">03 — THE KEEPERS</div>
-        <h2 id="display-title">On<br><span class="serif">Display.</span></h2>
-        <p class="section-intro">A few things worth keeping close.</p>
-        <p class="display-note">Keep a Gold Piece here, or save any raw note directly from Real Dirty Me.</p>
-      </div>
-      <div class="display-workspace">
-        <div class="entries-header"><span>YOUR PERSONAL GALLERY</span><span id="display-count" class="mono-label">00 PIECES</span></div>
-        <div id="display-list" class="display-list" aria-live="polite"></div>
-        <p id="display-empty" class="empty-state">Nothing on the wall yet. Keep what feels like yours.</p>
-      </div>
+      <div class="section-heading"><div class="section-number">03 — THE KEEPERS</div><h2 id="display-title">On<br><span class="serif">Display.</span></h2><p class="section-intro">A few things worth keeping close.</p><p class="display-note">Keep a Gold Piece here, or save any raw note directly from Real Dirty Me.</p></div>
+      <div class="display-workspace"><div class="entries-header"><span>YOUR PERSONAL GALLERY</span><span id="display-count" class="mono-label">00 PIECES</span></div><div id="display-list" class="display-list" aria-live="polite"></div><p id="display-empty" class="empty-state">Nothing on the wall yet. Keep what feels like yours.</p></div>
     </section>
 
     <section class="section mixtape-section" id="my-mixtape" aria-labelledby="mixtape-title">
-      <div class="section-heading mixtape-heading">
-        <div class="section-number">04 — THE YEAR IN SOUND</div>
-        <h2 id="mixtape-title">My<br><span class="serif">Mixtape.</span></h2>
-        <p class="mixtape-manifesto">One month. One track.<br><span>Twelve months. One album.</span></p>
-        <p class="mixtape-raw-note">Each month gathers that month's raw thoughts. The year becomes one personal album—every note counts, not just the ones you curate.</p>
-      </div>
+      <div class="section-heading mixtape-heading"><div class="section-number">04 — THE YEAR IN SOUND</div><h2 id="mixtape-title">My<br><span class="serif">Mixtape.</span></h2><p class="mixtape-manifesto">One month. One track.<br><span>Twelve months. One album.</span></p><p class="mixtape-raw-note">Each month gathers that month's raw thoughts. The year becomes one personal album—every note counts, not just the ones you curate.</p></div>
       <div class="album-area">
-        <div class="album-collectible" aria-label="Original Piece of Me annual album sleeve and vinyl record">
-          <div class="album-sleeve"><div class="sleeve-print" aria-hidden="true"><span class="sleeve-orbit orbit-one"></span><span class="sleeve-orbit orbit-two"></span><span class="sleeve-sun"></span><span class="sleeve-copy">PIECE<br>OF ME</span><span class="sleeve-edition">PM / ANNUAL PRESSING</span></div><div class="sleeve-label">YOUR YEAR<br>IN YOUR WORDS</div></div>
-          <div class="vinyl-record" aria-hidden="true"><div class="record-label"><span class="record-label-small">PIECE OF ME</span><span id="record-year">2026</span><span class="record-center"></span></div></div>
-          <div class="cd-edition" aria-label="Optional compact disc edition"><div class="cd-disc"><span>PM<br>CD—01</span></div><span class="cd-caption">OPTIONAL CD EDITION</span></div>
-        </div>
-        <div class="album-details">
-          <div class="album-year-row"><span class="mono-label">PERSONAL ALBUM</span><label for="album-year" class="visually-hidden">Choose album year</label><select id="album-year" class="year-select" aria-label="Choose album year"></select></div>
-          <p class="album-overline">THE WHOLE YEAR. PRESSED AS ONE.</p>
-          <h3 id="album-title">Your Life. On Record.</h3>
-          <p class="album-promise">12 tracks. 36 minutes. One year of you.</p>
-          <p id="album-entry-count" class="album-caption">Your raw thoughts, gathered month by month.</p>
-          <div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Personalized song generation is not connected yet. Physical album ordering is a collectible preview only—no orders or payments are processed.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE PRESSING ↗</button></div>
-        </div>
+        <div class="album-collectible" aria-label="Original Piece of Me annual album sleeve and vinyl record"><div class="album-sleeve"><div class="sleeve-print" aria-hidden="true"><span class="sleeve-orbit orbit-one"></span><span class="sleeve-orbit orbit-two"></span><span class="sleeve-sun"></span><span class="sleeve-copy">PIECE<br>OF ME</span><span class="sleeve-edition">PM / ANNUAL PRESSING</span></div><div class="sleeve-label">YOUR YEAR<br>IN YOUR WORDS</div></div><div class="vinyl-record" aria-hidden="true"><div class="record-label"><span class="record-label-small">PIECE OF ME</span><span id="record-year">2026</span><span class="record-center"></span></div></div><div class="cd-edition" aria-label="Optional compact disc edition"><div class="cd-disc"><span>PM<br>CD—01</span></div><span class="cd-caption">OPTIONAL CD EDITION</span></div></div>
+        <div class="album-details"><div class="album-year-row"><span class="mono-label">PERSONAL ALBUM</span><label for="album-year" class="visually-hidden">Choose album year</label><select id="album-year" class="year-select" aria-label="Choose album year"></select></div><p class="album-overline">THE WHOLE YEAR. PRESSED AS ONE.</p><h3 id="album-title">Your Life. On Record.</h3><p class="album-promise">12 tracks. 36 minutes. One year of you.</p><p id="album-entry-count" class="album-caption">Your raw thoughts, gathered month by month.</p><div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Personalized song generation is not connected yet. Physical album ordering is a collectible preview only—no orders or payments are processed.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE PRESSING ↗</button></div></div>
       </div>
-      <div class="tracklist-heading"><span>12 MONTHS / 12 TRACKS</span><span>EACH MONTH GETS ITS OWN THREE-MINUTE CUT</span></div>
-      <div id="track-list" class="track-grid" aria-label="Monthly mixtape tracks"></div>
-      <div class="beat-library">
-        <div class="beat-library-heading"><span class="section-number">THE BEAT CRATE</span><span>LOCAL PICKS · NO AUDIO GENERATED</span></div>
-        <div class="beat-groups"><article><span class="beat-index">A—01</span><h3>House Beats</h3><p>Steady pulse. Open windows.</p></article><article><span class="beat-index">B—02</span><h3>Seasonal Beats</h3><p>Sounds for wherever you are in the year.</p></article><article><span class="beat-index">C—03</span><h3>Guest Producers</h3><p>Other hands, another point of view.</p></article></div>
-        <p class="future-feature-line"><span class="future-tag">FUTURE FEATURE</span> Music generation and AI conversation are ideas for later, not working services in this app.</p>
-      </div>
-      <div class="benchmark-panel">
-        <div><span class="section-number">UNDER THE HOOD</span><h3>Undo, measured.</h3><p>Same workload, two ways to find the newest entry. Results are measured in this browser; your numbers may vary.</p></div>
-        <div class="benchmark-results" id="benchmark-results" aria-live="polite"><span class="benchmark-loading">RUNNING A SMALL TEST…</span></div>
-        <button id="benchmark-button" class="text-button" type="button">RUN IT AGAIN ↗</button>
-      </div>
+      <div class="tracklist-heading"><span>12 MONTHS / 12 TRACKS</span><span>EACH MONTH GETS ITS OWN THREE-MINUTE CUT</span></div><div id="track-list" class="track-grid" aria-label="Monthly mixtape tracks"></div>
+      <div class="beat-library"><div class="beat-library-heading"><span class="section-number">THE BEAT CRATE</span><span>LOCAL PICKS · NO AUDIO GENERATED</span></div><div class="beat-groups"><article><span class="beat-index">A—01</span><h3>House Beats</h3><p>Steady pulse. Open windows.</p></article><article><span class="beat-index">B—02</span><h3>Seasonal Beats</h3><p>Sounds for wherever you are in the year.</p></article><article><span class="beat-index">C—03</span><h3>Guest Producers</h3><p>Other hands, another point of view.</p></article></div><p class="future-feature-line"><span class="future-tag">FUTURE FEATURE</span> Music generation and AI conversation are ideas for later, not working services in this app.</p></div>
+      <div class="benchmark-panel"><div><span class="section-number">UNDER THE HOOD</span><h3>Undo, measured.</h3><p>Same workload, two ways to find the newest entry. Results are measured in this browser; your numbers may vary.</p></div><div class="benchmark-results" id="benchmark-results" aria-live="polite"><span class="benchmark-loading">RUNNING A SMALL TEST…</span></div><button id="benchmark-button" class="text-button" type="button">RUN IT AGAIN ↗</button></div>
     </section>
   </main>
-
   <footer class="footer"><a class="wordmark" href="#home">P/M<span>.</span></a><p>Made for the parts you don't post.</p><span class="mono-label">LOCAL BY DESIGN · NO ACCOUNT NEEDED</span></footer>
   <dialog id="order-dialog" class="order-dialog" aria-labelledby="dialog-title"><button class="dialog-close" id="dialog-close" type="button" aria-label="Close preview">×</button><span class="section-number">A NOTE FROM THE LABEL</span><h2 id="dialog-title">Someday,<br>on vinyl.</h2><p>Physical album ordering is a future feature. This preview doesn't place an order, collect your details, or process a payment.</p><button class="button button-light" id="dialog-done" type="button">Got it.</button></dialog>
 </body>
