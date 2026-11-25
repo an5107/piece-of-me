@@ -10,7 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="gold-mining.css">
   <script src="script.js" defer></script>
+  <script src="gold-mining.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -65,13 +67,25 @@
         <div class="section-number">02 — THE GOOD STUFF, HIDING IN PLAIN SIGHT</div>
         <h2 id="gold-title">Gold<br><span class="serif">Mining.</span></h2>
         <p class="section-intro">There's gold in the dirt.</p>
-        <p class="gold-explainer">Insights, original ideas, recurring desires, and ways of seeing—beside the words they came from. Your writing stays yours, exactly as you wrote it.</p>
+        <p class="gold-explainer">Quick finds from the notes, or a promising thought to kick around. Keep the good bits; leave the rest.</p>
       </div>
       <div class="gold-workspace">
-        <div class="demo-banner"><span class="demo-stamp">DEMO ONLY</span><p>These illustrative examples are not AI extraction. No real insight mining is running yet.</p></div>
-        <div class="entries-header gold-entries-header"><span>ILLUSTRATIVE GOLD PIECES</span><span id="gold-count" class="mono-label">00 PIECES</span></div>
-        <div id="gold-list" class="gold-list" aria-live="polite"></div>
-        <p id="gold-empty" class="empty-state">No demo pieces right now. Your raw notes are still here, untouched.</p>
+        <div class="prototype-banner"><span class="prototype-tag">AI PROTOTYPE DEMO</span><p>Sample notes and scripted demo responses only. No AI is connected, and none of your raw notes are analyzed or sent anywhere.</p></div>
+
+        <div class="gold-function-heading"><span>01 / QUICK FINDS</span><span>SHORT. SHARP. TAKE IT OR LEAVE IT.</span></div>
+        <div id="gold-insights" class="gold-cards"></div>
+
+        <div class="gold-function-heading dig-heading"><span>02 / THE ROUGH CUT</span><span>ONE PROMISING THOUGHT, A LITTLE MORE ROOM</span></div>
+        <article class="gold-card rough-card" id="rough-card">
+          <div class="gold-card-top"><span class="gold-kind">ROUGH CUT · PROTOTYPE</span><span class="gold-spark" aria-hidden="true">✳</span></div>
+          <p class="gold-insight">“I keep a folder of ideas I swear I'll come back to.”</p>
+          <blockquote class="gold-source"><span>DEMO SOURCE NOTE · NOT YOUR WRITING</span><p>I have a folder full of little project ideas. I keep saving them for when I have more time, then I forget which ones I actually liked.</p></blockquote>
+          <div class="rough-actions" id="rough-actions">
+            <button type="button" class="gold-button" id="dig-deeper">Dig Deeper <span aria-hidden="true">↗</span></button>
+            <button type="button" class="gold-text-button" id="dismiss-rough">Not this one ×</button>
+          </div>
+          <div class="dig-session" id="dig-session" hidden aria-live="polite"></div>
+        </article>
       </div>
     </section>
 
@@ -80,7 +94,7 @@
         <div class="section-number">03 — THE KEEPERS</div>
         <h2 id="display-title">On<br><span class="serif">Display.</span></h2>
         <p class="section-intro">A few things worth keeping close.</p>
-        <p class="display-note">Curated insights and raw entries live side by side. Save any original thought directly from Real Dirty Me, whenever you like.</p>
+        <p class="display-note">Keep a Gold Piece here, or save any raw note directly from Real Dirty Me.</p>
       </div>
       <div class="display-workspace">
         <div class="entries-header"><span>YOUR PERSONAL GALLERY</span><span id="display-count" class="mono-label">00 PIECES</span></div>
@@ -94,7 +108,7 @@
         <div class="section-number">04 — THE YEAR IN SOUND</div>
         <h2 id="mixtape-title">My<br><span class="serif">Mixtape.</span></h2>
         <p class="section-intro">Twelve months. One album. Your life in the liner notes.</p>
-        <p class="mixtape-raw-note">The album belongs to the whole page: every raw entry, not only the pieces you mine or display.</p>
+        <p class="mixtape-raw-note">The album draws from all your raw entries—not just the notes you curate.</p>
       </div>
       <div class="album-area">
         <div class="album-art" aria-label="A vinyl record representing your annual album">
@@ -104,7 +118,7 @@
         <div class="album-details">
           <div class="album-year-row"><span class="mono-label">PERSONAL ALBUM</span><label for="album-year" class="visually-hidden">Choose album year</label><select id="album-year" class="year-select" aria-label="Choose album year"></select></div>
           <h3 id="album-title">The Year, So Far</h3>
-          <p id="album-entry-count" class="album-caption">12 tracks · 03:00 each · your own rotation</p>
+          <p class="album-caption">12 tracks · 03:00 each · your own rotation</p>
           <div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Physical album ordering is a preview only. No orders or payments are processed here.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE IDEA ↗</button></div>
         </div>
       </div>

@@ -1,0 +1,67 @@
+/* Gold Mining keeps the established editorial layout and adds a muted-metal finish. */
+:root { --gold: #c6a665; --gold-bright: #dfc27e; --gold-muted: #9c895f; --gold-rule: rgba(198, 166, 101, .34); }
+.gold-section { background: #1c1b18; }
+.gold-section .section-number { color: var(--gold-muted); }
+.gold-section .section-heading h2 { color: var(--gold); }
+.gold-section .section-intro { color: var(--gold-bright); font: italic clamp(20px, 2.4vw, 28px) var(--serif); }
+.gold-explainer, .display-note, .mixtape-raw-note { max-width: 360px; color: #aaa69b; font-size: 13px; line-height: 1.7; }
+.gold-workspace { min-width: 0; padding-top: 20px; }
+.prototype-banner { display: flex; align-items: flex-start; gap: 13px; padding: 15px 17px; border: 1px solid var(--gold-rule); background: rgba(198,166,101,.05); }
+.prototype-tag, .gold-function-heading, .gold-kind, .gold-source span, .dig-step-label { color: var(--gold-muted); font: 9px var(--mono); letter-spacing: .07em; }
+.prototype-tag { flex: 0 0 auto; padding: 5px 7px; color: #171715; background: var(--gold); font-size: 8px; }
+.prototype-banner p { margin: 0; color: #c5b99f; font-size: 12px; line-height: 1.55; }
+.gold-function-heading { display: flex; justify-content: space-between; gap: 12px; padding: 24px 0 12px; border-bottom: 1px solid var(--gold-rule); }
+.gold-function-heading span:last-child { text-align: right; }
+.dig-heading { margin-top: 32px; }
+.gold-card { padding: 22px 0 25px; border-bottom: 1px solid var(--gold-rule); }
+.gold-card-top { display: flex; justify-content: space-between; align-items: center; }
+.gold-kind { font-size: 8px; }
+.gold-spark { color: var(--gold-bright); font-size: 16px; }
+.gold-insight { margin: 12px 0 17px; color: var(--gold-bright); font: clamp(20px, 2.4vw, 28px)/1.3 var(--serif); }
+.gold-source { margin: 0 0 17px; padding: 13px 15px; border-left: 1px solid var(--gold); background: rgba(0,0,0,.13); }
+.gold-source span { display: block; margin-bottom: 8px; font-size: 8px; }
+.gold-source p { margin: 0; color: #cbc6ba; white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--serif); }
+.gold-actions, .rough-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+.gold-button { padding: 10px 13px; border: 1px solid var(--gold); background: var(--gold); color: #171715; font: 11px var(--mono); cursor: pointer; transition: background .2s, color .2s; }
+.gold-button:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
+.gold-button span { margin-left: 12px; }
+.gold-text-button { padding: 8px 0; border: 0; background: transparent; color: var(--gold); font: 9px var(--mono); letter-spacing: .05em; cursor: pointer; }
+.gold-text-button:hover { color: var(--gold-bright); }
+.gold-function-heading + .gold-cards:empty::after { content: 'No need to dig through every note. Sometimes there is no gold to call out.'; display: block; padding: 20px 0; color: #9c895f; font: italic 15px var(--serif); }
+.rough-card { margin-top: 2px; }
+.dig-session { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--gold-rule); }
+.dig-session[hidden] { display: none; }
+.dig-prompt { margin: 0 0 12px; color: #d3c7ac; font: 17px/1.45 var(--serif); }
+.dig-choices { display: flex; flex-wrap: wrap; gap: 9px; margin: 13px 0 18px; }
+.dig-choice { padding: 9px 11px; border: 1px solid var(--gold-rule); background: transparent; color: #d3c7ac; font: 11px var(--sans); cursor: pointer; }
+.dig-choice:hover, .dig-choice:focus-visible { border-color: var(--gold); color: var(--gold-bright); }
+.dig-response { margin: 15px 0; color: var(--gold-bright); font: 20px/1.35 var(--serif); }
+.prototype-disclaimer { margin: 13px 0 0; color: #9c895f; font: 9px/1.5 var(--mono); }
+.gold-saved-card { padding: 22px 0 25px; border-bottom: 1px solid rgba(23,23,21,.22); }
+.gold-saved-card .entry-meta { color: #77746b; }
+.gold-saved-card .gold-insight { color: #806334; }
+.gold-saved-card .gold-source { border-color: #a88a53; background: rgba(23,23,21,.035); }
+.gold-saved-card .gold-source span { color: #807052; }
+.gold-saved-card .gold-source p { color: #4a473f; }
+.gold-saved-card .gold-text-button { color: #514f47; }
+.gold-saved-card .gold-text-button:hover { color: #647a00; }
+.display-section .section-number, .display-section .entries-header, .display-section .mono-label { color: #77746b; }
+.display-section .section-intro { color: #626057; }
+.display-section .entries-header, .display-section .display-card { border-color: rgba(23,23,21,.22); }
+.display-section .empty-state { color: #77746b; }
+.display-section .display-card { padding: 24px 0 26px; }
+.display-section .display-card .entry-meta { color: #77746b; }
+.display-section .display-card .entry-copy { font-size: 21px; }
+.display-section .display-card .text-button { color: #514f47; }
+.display-section .display-card .text-button:hover { color: #647a00; }
+.display-note, .mixtape-raw-note { color: #77746b; }
+@media (max-width: 760px) {
+  .gold-workspace { padding-top: 0; }
+  .gold-function-heading { font-size: 8px; }
+  .prototype-banner { padding: 12px; gap: 9px; }
+  .prototype-banner p { font-size: 11px; }
+}
+@media (max-width: 470px) {
+  .gold-function-heading { align-items: flex-start; flex-direction: column; }
+  .gold-function-heading span:last-child { text-align: left; }
+}
