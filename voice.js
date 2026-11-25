@@ -2,13 +2,18 @@
   'use strict';
 
   const startButton = document.querySelector('#voice-start');
+  if (!startButton) return;
+
+  // Upgrade the existing voice button in place; keep the same button and action.
+  startButton.innerHTML = '<span class="mic-circle" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><rect x="11" y="4" width="10" height="17" rx="5"></rect><path d="M7 15v2a9 9 0 0 0 18 0v-2M16 26v4m-5 0h10"></path></svg></span><span class="voice-button-label">Say it.</span><time class="voice-button-time" hidden>00:00</time>';
+
   const stopButton = document.querySelector('#voice-stop');
   const saveButton = document.querySelector('#voice-save');
   const discardButton = document.querySelector('#voice-discard');
   const panel = document.querySelector('#voice-panel');
   const stateLabel = document.querySelector('#voice-state');
   const timerLabel = document.querySelector('#voice-timer');
-  const buttonTimer = document.querySelector('.voice-button-time');
+  const buttonTimer = startButton.querySelector('.voice-button-time');
   const transcriptStatus = document.querySelector('#voice-transcript-status');
   const keepAudio = document.querySelector('#keep-audio');
   const preview = document.querySelector('#voice-preview');
@@ -78,31 +83,24 @@
     timerLabel.textContent = value;
     buttonTimer.textContent = value;
   }
+  function setRecordingButton(recording, requesting = false) {
+    startButton.classList.toggle('is-recording', recording);
+    startButton.classList.toggle('is-requesting', requesting);
+    startButton.disabled = recording || requesting;
+    buttonTimer.hidden = !recording;
+  }
   function clearPreview() {
     preview.pause(); preview.removeAttribute('src'); preview.load(); preview.hidden = true;
     if (clipUrl) URL.revokeObjectURL(clipUrl);
     clipUrl = null;
   }
-  function setRecordingButton(recording) {
-    startButton.classList.toggle('is-recording', recording);
-    startButton.classList.toggle('is-requesting', !recording && startButton.disabled);
-    startButton.disabled = recording;
-    buttonTimer.hidden = !recording;
-    startButton.querySelector('.voice-button-label').textContent = recording ? 'Recording' : 'Say it.';
-  }
   function showFinished() {
-    stopButton.hidden = true;
-    finishedActions.hidden = false;
-    preview.hidden = false;
-    clipUrl = URL.createObjectURL(clip);
-    preview.src = clipUrl;
-    stateLabel.textContent = 'READY TO SAVE';
+    stopButton.hidden = true; finishedActions.hidden = false; preview.hidden = false;
+    clipUrl = URL.createObjectURL(clip); preview.src = clipUrl; stateLabel.textContent = 'READY TO SAVE';
     document.querySelector('#voice-indicator').classList.remove('is-recording');
     setRecordingButton(false);
-    if (transcript.trim()) {
-      textarea.value = transcript.trim();
-      setStatus('Transcript is ready in the text field. Edit it if you like, or keep it exactly as spoken.');
-    } else if (recognitionSupported()) setStatus('No words came through. Replay, try again, or type your note below.');
+    if (transcript.trim()) { textarea.value = transcript.trim(); setStatus('Transcript is ready in the text field. Edit it if you like, or keep it exactly as spoken.'); }
+    else if (recognitionSupported()) setStatus('No words came through. Replay, try again, or type your note below.');
     else setStatus('Speech-to-text is not supported here. Type a transcript below, or keep the original audio.');
   }
   function recognitionSupported() { return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition); }
@@ -131,7 +129,7 @@
   async function beginRecording() {
     if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { panel.hidden = false; setStatus('Microphone access needs HTTPS (or localhost). You can still type below.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { panel.hidden = false; setStatus('Voice recording is not supported here. Try a current browser over HTTPS, or use the text field.'); return; }
-    startButton.disabled = true; startButton.classList.add('is-requesting'); panel.hidden = false;
+    setRecordingButton(false, true); panel.hidden = false;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type));
@@ -143,7 +141,7 @@
       startedAt = Date.now(); timerLabel.textContent = '00:00'; buttonTimer.textContent = '00:00'; setRecordingButton(true);
       timer = window.setInterval(updateTimer, 250); startSpeechRecognition(); recorder.start(250);
     } catch (error) {
-      startButton.disabled = false; startButton.classList.remove('is-requesting'); panel.hidden = false;
+      setRecordingButton(false); panel.hidden = false;
       const message = error && error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow mic access in browser settings, then try again.' : error && error.name === 'NotFoundError' ? 'No microphone was found. You can still type below.' : 'Could not start the microphone. Check browser permission and try again, or use text.';
       if (stream) stream.getTracks().forEach(track => track.stop()); stream = null; setStatus(message); stateLabel.textContent = 'MIC UNAVAILABLE';
     }
@@ -160,7 +158,7 @@
     if (recognition) { try { recognition.abort(); } catch (error) {} recognition = null; }
     if (clipUrl) URL.revokeObjectURL(clipUrl); clipUrl = null; clip = null; chunks = []; transcript = '';
     preview.pause(); preview.removeAttribute('src'); preview.load(); preview.hidden = true; textarea.value = '';
-    panel.hidden = true; startButton.disabled = false; startButton.classList.remove('is-recording', 'is-requesting'); stopButton.hidden = true; finishedActions.hidden = true; buttonTimer.hidden = true;
+    panel.hidden = true; setRecordingButton(false); stopButton.hidden = true; finishedActions.hidden = true;
     document.querySelector('#voice-indicator').classList.remove('is-recording'); stateLabel.textContent = 'READY'; timerLabel.textContent = '00:00'; buttonTimer.textContent = '00:00'; setStatus('Recording discarded.');
   }
 
@@ -175,9 +173,7 @@
       try { audioId = `voice-${globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`}`; await putAudio(audioId, clip); }
       catch (error) { setStatus('Could not keep audio locally. Uncheck audio retention to save transcript only, or try again.'); return; }
     }
-    pending = { audioId };
-    if (!text) textarea.value = 'Voice recording (transcription unavailable).';
-    form.requestSubmit();
+    pending = { audioId }; if (!text) textarea.value = 'Voice recording (transcription unavailable).'; form.requestSubmit();
     const saved = formStatus.textContent.startsWith('Dropped.') || formStatus.textContent.startsWith('Voice note dropped.');
     pending = null; if (!saved && audioId) await deleteAudio(audioId); if (saved) discardRecording();
   });
