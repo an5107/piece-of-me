@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="opening.css">
   <script src="script.js" defer></script>
   <script src="gold-mining.js" defer></script>
 </head>
@@ -26,13 +27,20 @@
   </header>
 
   <main id="home">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero opening-hero" aria-labelledby="hero-title">
       <div class="hero-kicker"><span>AN OPEN NOTE TO YOURSELF</span><span>EST. RIGHT NOW</span></div>
       <h1 id="hero-title">Piece<br>of <span class="hero-outline">Me.</span></h1>
-      <div class="hero-bottom">
-        <p>You want a piece of me,<br>right?</p>
-        <a class="scroll-link" href="#real-dirty-me">TAKE WHAT YOU NEED <span aria-hidden="true">↓</span></a>
+      <div class="opening-copy">
+        <p class="opening-tagline">You want a piece of me, right?</p>
+        <p class="opening-declaration">Too real for Instagram.<br>Too personal for the group chat.<br><span>Just gotta get it out.</span></p>
+        <p class="opening-philosophy">“Unspoken desires build rooms of their own inside you.<br>Give them a place to exist.”</p>
       </div>
+      <form id="entry-form" class="entry-form opening-form">
+        <label class="visually-hidden" for="entry-input">Your unfiltered thoughts</label>
+        <textarea id="entry-input" rows="3" maxlength="5000" placeholder="Come on. Spill it." required></textarea>
+        <div class="form-bottom"><span class="privacy-copy">NO AUDIENCE. NO FILTER. NO EXPLANATION.</span><button class="button button-light" type="submit">Drop it. <span aria-hidden="true">↗</span></button></div>
+        <p id="form-status" class="form-status" aria-live="polite"></p>
+      </form>
       <div class="hero-index" aria-hidden="true">PM—001</div>
     </section>
 
@@ -40,15 +48,9 @@
       <div class="section-heading">
         <div class="section-number">01 — THE PRIVATE PAGE</div>
         <h2 id="confession-title">Real Dirty<br><span class="serif">Me.</span></h2>
-        <p class="section-intro">No edits. No audience. Just get it out.</p>
+        <p class="section-intro">No audience. No filter. No explanation.</p>
       </div>
       <div class="confession-workspace">
-        <form id="entry-form" class="entry-form">
-          <label class="visually-hidden" for="entry-input">Your unfiltered thoughts</label>
-          <textarea id="entry-input" rows="5" maxlength="5000" placeholder="Come on. Spill it." required></textarea>
-          <div class="form-bottom"><span class="privacy-copy">STAYS ON THIS DEVICE</span><button class="button button-light" type="submit">Drop it. <span aria-hidden="true">↗</span></button></div>
-          <p id="form-status" class="form-status" aria-live="polite"></p>
-        </form>
         <div class="entries-header"><span>LATEST FROM THE PAGE</span><button type="button" class="text-button" id="undo-button" disabled>UNDO LAST <span aria-hidden="true">↶</span></button></div>
         <div id="entries-list" class="entries-list" aria-live="polite"></div>
         <p id="entries-empty" class="empty-state">The page is blank. For now.</p>
@@ -98,13 +100,9 @@
         <p class="mixtape-manifesto">One month. One track.<br><span>Twelve months. One album.</span></p>
         <p class="mixtape-raw-note">Each month gathers that month's raw thoughts. The year becomes one personal album—every note counts, not just the ones you curate.</p>
       </div>
-
       <div class="album-area">
         <div class="album-collectible" aria-label="Original Piece of Me annual album sleeve and vinyl record">
-          <div class="album-sleeve">
-            <div class="sleeve-print" aria-hidden="true"><span class="sleeve-orbit orbit-one"></span><span class="sleeve-orbit orbit-two"></span><span class="sleeve-sun"></span><span class="sleeve-copy">PIECE<br>OF ME</span><span class="sleeve-edition">PM / ANNUAL PRESSING</span></div>
-            <div class="sleeve-label">YOUR YEAR<br>IN YOUR WORDS</div>
-          </div>
+          <div class="album-sleeve"><div class="sleeve-print" aria-hidden="true"><span class="sleeve-orbit orbit-one"></span><span class="sleeve-orbit orbit-two"></span><span class="sleeve-sun"></span><span class="sleeve-copy">PIECE<br>OF ME</span><span class="sleeve-edition">PM / ANNUAL PRESSING</span></div><div class="sleeve-label">YOUR YEAR<br>IN YOUR WORDS</div></div>
           <div class="vinyl-record" aria-hidden="true"><div class="record-label"><span class="record-label-small">PIECE OF ME</span><span id="record-year">2026</span><span class="record-center"></span></div></div>
           <div class="cd-edition" aria-label="Optional compact disc edition"><div class="cd-disc"><span>PM<br>CD—01</span></div><span class="cd-caption">OPTIONAL CD EDITION</span></div>
         </div>
@@ -117,17 +115,11 @@
           <div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Personalized song generation is not connected yet. Physical album ordering is a collectible preview only—no orders or payments are processed.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE PRESSING ↗</button></div>
         </div>
       </div>
-
       <div class="tracklist-heading"><span>12 MONTHS / 12 TRACKS</span><span>EACH MONTH GETS ITS OWN THREE-MINUTE CUT</span></div>
       <div id="track-list" class="track-grid" aria-label="Monthly mixtape tracks"></div>
-
       <div class="beat-library">
         <div class="beat-library-heading"><span class="section-number">THE BEAT CRATE</span><span>LOCAL PICKS · NO AUDIO GENERATED</span></div>
-        <div class="beat-groups">
-          <article><span class="beat-index">A—01</span><h3>House Beats</h3><p>Steady pulse. Open windows.</p></article>
-          <article><span class="beat-index">B—02</span><h3>Seasonal Beats</h3><p>Sounds for wherever you are in the year.</p></article>
-          <article><span class="beat-index">C—03</span><h3>Guest Producers</h3><p>Other hands, another point of view.</p></article>
-        </div>
+        <div class="beat-groups"><article><span class="beat-index">A—01</span><h3>House Beats</h3><p>Steady pulse. Open windows.</p></article><article><span class="beat-index">B—02</span><h3>Seasonal Beats</h3><p>Sounds for wherever you are in the year.</p></article><article><span class="beat-index">C—03</span><h3>Guest Producers</h3><p>Other hands, another point of view.</p></article></div>
         <p class="future-feature-line"><span class="future-tag">FUTURE FEATURE</span> Music generation and AI conversation are ideas for later, not working services in this app.</p>
       </div>
       <div class="benchmark-panel">

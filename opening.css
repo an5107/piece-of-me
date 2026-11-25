@@ -1,0 +1,53 @@
+/* Opening screen: keep the original visual system, bring the spill box up front. */
+.opening-hero {
+  min-height: min(860px, calc(100svh - 74px));
+  height: auto;
+  padding-top: clamp(30px, 5vh, 58px);
+  padding-bottom: clamp(34px, 5vh, 58px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, .8fr);
+  grid-template-rows: auto auto 1fr;
+  column-gap: clamp(34px, 7vw, 100px);
+  row-gap: 12px;
+  align-items: center;
+  justify-content: initial;
+  overflow: visible;
+}
+.opening-hero .hero-kicker { grid-column: 1 / -1; align-self: start; }
+.opening-hero h1 {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  margin: 5vh 0;
+  align-self: center;
+  font-size: clamp(100px, 17vw, 250px);
+}
+.opening-copy { grid-column: 2; grid-row: 2; align-self: end; padding-top: 22px; }
+.opening-tagline { margin: 0 0 26px; color: var(--paper); font: italic clamp(20px, 2.4vw, 31px)/1.15 var(--serif); }
+.opening-declaration { margin: 0; font-size: clamp(26px, 3.2vw, 43px); line-height: 1.03; font-weight: 700; letter-spacing: -.055em; }
+.opening-declaration span { color: var(--gold); }
+.opening-philosophy { margin: 25px 0 0; color: #8e8a80; font: italic 13px/1.6 var(--serif); }
+.opening-form { grid-column: 2; grid-row: 3; align-self: start; width: 100%; margin-top: 23px; border-bottom: 0; border-top: 1px dashed var(--rule); padding-top: 16px; }
+.opening-form textarea { min-height: 110px; padding: 3px 0 14px; font-size: 21px; }
+.opening-form textarea::placeholder { font-size: 21px; }
+.opening-form .form-bottom { border-top: 1px solid var(--rule); padding: 13px 0; gap: 12px; }
+.opening-form .privacy-copy { color: #a7a196; font-size: 8px; }
+.opening-form .button-light { flex: 0 0 auto; }
+.opening-form .form-status { min-height: 16px; }
+.opening-hero .hero-index { top: 46%; }
+
+@media (max-width: 760px) {
+  .opening-hero { min-height: 0; padding: 26px 7vw 44px; grid-template-columns: 1fr; grid-template-rows: auto; row-gap: 0; }
+  .opening-hero .hero-kicker { grid-column: 1; }
+  .opening-hero h1 { grid-column: 1; grid-row: auto; margin: 11vh 0 8vh; font-size: clamp(104px, 25vw, 190px); }
+  .opening-copy { grid-column: 1; grid-row: auto; padding-top: 0; }
+  .opening-tagline { margin-bottom: 19px; font-size: 23px; }
+  .opening-declaration { font-size: clamp(28px, 8vw, 43px); }
+  .opening-philosophy { margin-top: 20px; font-size: 12px; }
+  .opening-form { grid-column: 1; grid-row: auto; margin-top: 24px; padding-top: 13px; }
+  .opening-form textarea { min-height: 104px; }
+  .opening-hero .hero-index { top: 34%; right: 4vw; }
+}
+@media (max-width: 380px) {
+  .opening-form .form-bottom { align-items: flex-start; }
+  .opening-form .privacy-copy { max-width: 155px; line-height: 1.6; }
+}
