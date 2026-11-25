@@ -24,8 +24,8 @@
   let clip = null;
   let clipUrl = null;
   let recognition = null;
+  let recognitionDone = Promise.resolve();
   let transcript = '';
-  let startedAt = 0;
   let timer = null;
   let pending = null;
 
@@ -88,7 +88,7 @@
     preview.src = clipUrl;
     stateLabel.textContent = 'READY TO SAVE';
     document.querySelector('#voice-indicator').classList.remove('is-recording');
-    if (transcript) {
+    if (transcript.trim()) {
       textarea.value = transcript.trim();
       setStatus('Transcript is ready in the text field. Edit it if you like, or keep it exactly as spoken.');
     } else if (recognitionSupported()) {
@@ -100,7 +100,13 @@
   function recognitionSupported() { return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition); }
   function startSpeechRecognition() {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Recognition) { setStatus('Recording is working. Speech-to-text is not supported in this browser; you can type below.'); return; }
+    if (!Recognition) {
+      recognitionDone = Promise.resolve();
+      setStatus('Recording is working. Speech-to-text is not supported in this browser; you can type below.');
+      return;
+    }
+    let markEnded;
+    recognitionDone = new Promise(resolve => { markEnded = resolve; });
     try {
       recognition = new Recognition();
       recognition.continuous = true;
@@ -119,13 +125,29 @@
       recognition.onerror = event => {
         if (event.error !== 'no-speech' && event.error !== 'aborted') setStatus('Audio recording continues. Browser speech-to-text is unavailable for this take.');
       };
+      recognition.onend = () => markEnded();
       recognition.start();
       setStatus('Recording. Browser speech-to-text is on where supported.');
     } catch (error) {
+      markEnded();
       setStatus('Audio recording continues. Speech-to-text could not start in this browser.');
     }
   }
+  async function finishRecording() {
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    stream = null;
+    if (recognition) { try { recognition.stop(); } catch (error) {} }
+    // Let the browser deliver any final recognition result before enabling Save.
+    await Promise.race([recognitionDone, new Promise(resolve => window.setTimeout(resolve, 1200))]);
+    recognition = null;
+    showFinished();
+  }
   async function beginRecording() {
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      panel.hidden = false;
+      setStatus('Microphone access needs HTTPS (or localhost). You can still type below.');
+      return;
+    }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
       panel.hidden = false;
       setStatus('Voice recording is not supported here. Try a current browser over HTTPS, or use the text field.');
@@ -138,7 +160,9 @@
       const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type));
       recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunks = [];
+      clip = null;
       transcript = '';
+      recognitionDone = Promise.resolve();
       textarea.value = '';
       clearPreview();
       finishedActions.hidden = true;
@@ -148,35 +172,38 @@
       document.querySelector('#voice-indicator').classList.add('is-recording');
       recorder.ondataavailable = event => { if (event.data && event.data.size) chunks.push(event.data); };
       recorder.onerror = () => setStatus('The browser stopped the recording unexpectedly. You can try again.');
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         clip = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
-        if (stream) stream.getTracks().forEach(track => track.stop());
-        stream = null;
-        if (recognition) { try { recognition.stop(); } catch (error) {} recognition = null; }
-        showFinished();
+        if (timer) { clearInterval(timer); timer = null; }
+        await finishRecording();
       };
-      startedAt = Date.now();
       timerLabel.textContent = '00:00';
-      timer = window.setInterval(() => { timerLabel.textContent = formatTime(Date.now() - startedAt); }, 250);
+      timer = window.setInterval(() => { timerLabel.textContent = formatTime(recorder.state === 'recording' ? Date.now() - startedAt : 0); }, 250);
       startSpeechRecognition();
+      startedAt = Date.now();
       recorder.start(250);
     } catch (error) {
       startButton.disabled = false;
       panel.hidden = false;
       const message = error && error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow mic access in browser settings, then try again.' : error && error.name === 'NotFoundError' ? 'No microphone was found. You can still type below.' : 'Could not start the microphone. Check browser permission and try again, or use text.';
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = null;
       setStatus(message);
       stateLabel.textContent = 'MIC UNAVAILABLE';
     }
   }
   function stopRecording() {
-    if (timer) { clearInterval(timer); timer = null; }
     if (recorder && recorder.state !== 'inactive') recorder.stop();
     else if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
-    if (recognition) { try { recognition.stop(); } catch (error) {} }
+    if (!recorder || recorder.state === 'inactive') {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (recognition) { try { recognition.stop(); } catch (error) {} }
+    }
   }
   function discardRecording() {
     if (timer) { clearInterval(timer); timer = null; }
     if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
+    if (recorder && recorder.state !== 'inactive') { try { recorder.stop(); } catch (error) {} }
     if (recognition) { try { recognition.abort(); } catch (error) {} recognition = null; }
     if (clipUrl) URL.revokeObjectURL(clipUrl);
     clipUrl = null; clip = null; chunks = []; transcript = '';
@@ -210,10 +237,11 @@
     }
     pending = { audioId };
     if (!text) textarea.value = 'Voice recording (transcription unavailable).';
-    // Existing form handler stores the voice note in the same LIFO raw-entry Stack.
     form.requestSubmit();
+    const saved = formStatus.textContent.startsWith('Dropped.') || formStatus.textContent.startsWith('Voice note dropped.');
     pending = null;
-    if (formStatus.textContent.startsWith('Dropped.') || formStatus.textContent.startsWith('Voice note dropped.')) discardRecording();
+    if (!saved && audioId) await deleteAudio(audioId);
+    if (saved) discardRecording();
   });
 
   function mountAudioPlayers(container) {
@@ -226,9 +254,7 @@
         const url = URL.createObjectURL(blob);
         audio.src = url;
         audio.addEventListener('emptied', () => URL.revokeObjectURL(url), { once: true });
-      } catch (error) {
-        if (audio.isConnected) audio.replaceWith(makeMissingAudioMessage());
-      }
+      } catch (error) { if (audio.isConnected) audio.replaceWith(makeMissingAudioMessage()); }
     });
   }
   function makeMissingAudioMessage() {
@@ -236,10 +262,6 @@
   }
   const observer = new MutationObserver(() => mountAudioPlayers(entriesList));
   observer.observe(entriesList, { childList: true, subtree: true });
-  window.PieceOfMeVoice = {
-    takePending: () => pending,
-    mountAudioPlayers,
-    deleteAudio
-  };
+  window.PieceOfMeVoice = { takePending: () => pending, mountAudioPlayers, deleteAudio };
   mountAudioPlayers(entriesList);
 })();
