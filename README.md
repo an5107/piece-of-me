@@ -1,0 +1,57 @@
+# Piece of Me.
+
+**You want a piece of me, right?**
+
+A responsive, editorial-style personal space for writing unfiltered thoughts, keeping a private gallery of selected entries, and building a year-by-year mixtape. The app is built with HTML, CSS, and vanilla JavaScript, and runs entirely in the browser without a build step, account, server, or API.
+
+## Features
+
+- **Real Dirty Me:** Write entries with timestamps, see newest entries first, undo the latest submission, delete individual entries, and add or remove entries from On Display.
+- **On Display:** Keep a minimal gallery of selected entries without assigning categories or moods.
+- **My Mixtape:** Browse a 12-track album for each year, with three-minute track placeholders and local beat selections from House Beats, Seasonal Beats, and Guest Producers.
+- **Local persistence:** Entries, gallery selections, and monthly beat choices are saved in this browser's `localStorage`.
+- **Responsive layout:** Designed for desktop and mobile screens, with reduced-motion support.
+- **Measured algorithm comparison:** A browser benchmark compares stack-based undo with a linear-scan alternative. It runs automatically when the page loads and can be rerun. The displayed milliseconds and ratio are measured in the current browser and will vary by device and browser.
+
+## Stack and complexity
+
+The entry history is an array-backed LIFO `Stack` in `script.js`. New entries use `push`; Undo calls `pop` to remove the newest entry.
+
+| Operation | Complexity |
+| --- | --- |
+| `push` a new entry | O(1) amortized |
+| `pop` the latest entry for Undo | O(1) |
+| Peek at the latest entry | O(1) |
+| Delete an arbitrary entry | O(n) search and shifting |
+| Linear-search comparison | O(n) per undo operation |
+
+The built-in benchmark creates 10,000 synthetic items, times 250 undo operations using each method, and reports the median of three measured runs. Stack setup is outside the timed portion. The alternative scans the full list on each undo to locate the newest active item. These are synthetic browser-local measurements—not a promise of fixed speedups—and are not based on personal entries.
+
+## Future features—not working services
+
+- AI conversation is a future feature; no AI service is connected.
+- Music generation is a future feature; beat selections are text-only and do not play or generate audio.
+- Physical album ordering is a future feature; the order preview is informational and does not collect details, accept payments, or place orders.
+
+## Run locally
+
+No dependencies or build tools are required. Open `index.html` in a browser, or serve this directory with any static file server. For example:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then visit `http://localhost:8000`.
+
+## Deploy to Netlify
+
+This is a static site with no build process:
+
+1. Import the repository into Netlify, or drag the project folder into Netlify's manual deploy interface.
+2. Set the **publish directory** to the repository root (`.`).
+3. Leave the **build command** empty.
+4. Deploy. The site entry point is `index.html`.
+
+## Privacy
+
+No application data is sent to a backend: entries, gallery choices, and beat selections remain in browser-local storage on the device. Anyone with access to the same browser profile may be able to access its local storage, so this is not a secure vault. The page loads its Space Grotesk and DM Mono typefaces from Google Fonts; use system font fallbacks or remove the font links if you need to avoid that third-party font request. No personal data or API keys are included in the repository.

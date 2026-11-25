@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171715">
+  <meta name="description" content="Piece of Me is a private, browser-local space to write, collect, and soundtrack your own life.">
+  <title>Piece of Me. — You want a piece of me, right?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="#home" aria-label="Piece of Me home">P/M<span>.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="#real-dirty-me">01 / Spill</a>
+      <a href="#on-display">02 / Keep</a>
+      <a href="#my-mixtape">03 / Soundtrack</a>
+    </nav>
+    <span class="local-note"><span class="status-dot" aria-hidden="true"></span> YOURS, AND YOURS ONLY</span>
+  </header>
+
+  <main id="home">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-kicker"><span>AN OPEN NOTE TO YOURSELF</span><span>EST. RIGHT NOW</span></div>
+      <h1 id="hero-title">Piece<br>of <span class="hero-outline">Me.</span></h1>
+      <div class="hero-bottom">
+        <p>You want a piece of me,<br>right?</p>
+        <a class="scroll-link" href="#real-dirty-me">TAKE WHAT YOU NEED <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-index" aria-hidden="true">PM—001</div>
+    </section>
+
+    <section class="section confession-section" id="real-dirty-me" aria-labelledby="confession-title">
+      <div class="section-heading">
+        <div class="section-number">01 — THE PRIVATE PAGE</div>
+        <h2 id="confession-title">Real Dirty<br><span class="serif">Me.</span></h2>
+        <p class="section-intro">No edits. No audience. Just get it out.</p>
+      </div>
+      <div class="confession-workspace">
+        <form id="entry-form" class="entry-form">
+          <label class="visually-hidden" for="entry-input">Your unfiltered thoughts</label>
+          <textarea id="entry-input" rows="5" maxlength="5000" placeholder="Come on. Spill it." required></textarea>
+          <div class="form-bottom">
+            <span class="privacy-copy">STAYS ON THIS DEVICE</span>
+            <button class="button button-light" type="submit">Drop it. <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="form-status" class="form-status" aria-live="polite"></p>
+        </form>
+        <div class="entries-header">
+          <span>LATEST FROM THE PAGE</span>
+          <button type="button" class="text-button" id="undo-button" disabled>UNDO LAST <span aria-hidden="true">↶</span></button>
+        </div>
+        <div id="entries-list" class="entries-list" aria-live="polite"></div>
+        <p id="entries-empty" class="empty-state">The page is blank. For now.</p>
+      </div>
+    </section>
+
+    <section class="section display-section" id="on-display" aria-labelledby="display-title">
+      <div class="section-heading">
+        <div class="section-number">02 — THE KEEPERS</div>
+        <h2 id="display-title">On<br><span class="serif">Display.</span></h2>
+        <p class="section-intro">A few things worth keeping close.</p>
+      </div>
+      <div class="display-workspace">
+        <div class="entries-header"><span>YOUR PERSONAL GALLERY</span><span id="display-count" class="mono-label">00 PIECES</span></div>
+        <div id="display-list" class="display-list" aria-live="polite"></div>
+        <p id="display-empty" class="empty-state">Nothing on the wall yet. Keep what feels like yours.</p>
+      </div>
+    </section>
+
+    <section class="section mixtape-section" id="my-mixtape" aria-labelledby="mixtape-title">
+      <div class="section-heading">
+        <div class="section-number">03 — THE YEAR IN SOUND</div>
+        <h2 id="mixtape-title">My<br><span class="serif">Mixtape.</span></h2>
+        <p class="section-intro">Twelve months. One album. Your life in the liner notes.</p>
+      </div>
+      <div class="album-area">
+        <div class="album-art" aria-label="A vinyl record representing your annual album">
+          <div class="vinyl-record"><div class="record-label"><span class="record-label-small">PIECE OF ME</span><span id="record-year">2026</span><span class="record-center"></span></div></div>
+          <span class="album-sticker">SIDE A<br>YOUR YEAR</span>
+        </div>
+        <div class="album-details">
+          <div class="album-year-row"><span class="mono-label">PERSONAL ALBUM</span><label for="album-year" class="visually-hidden">Choose album year</label><select id="album-year" class="year-select" aria-label="Choose album year"></select></div>
+          <h3 id="album-title">The Year, So Far</h3>
+          <p class="album-caption">12 tracks · 03:00 each · your own rotation</p>
+          <div class="future-note"><span class="future-tag">FUTURE FEATURE</span><p>Physical album ordering is a preview only. No orders or payments are processed here.</p><button id="order-preview" class="text-button" type="button">PREVIEW THE IDEA ↗</button></div>
+        </div>
+      </div>
+      <div class="tracklist-heading"><span>THE TRACKLIST</span><span>CHOOSE THE BEAT FOR EACH MONTH</span></div>
+      <div id="track-list" class="track-list"></div>
+      <div class="beat-library">
+        <div class="beat-library-heading"><span class="section-number">THE BEAT CRATE</span><span>LOCAL PICKS · NO AUDIO GENERATED</span></div>
+        <div class="beat-groups">
+          <article><span class="beat-index">A—01</span><h3>House Beats</h3><p>Steady pulse. Open windows.</p></article>
+          <article><span class="beat-index">B—02</span><h3>Seasonal Beats</h3><p>Sounds for wherever you are in the year.</p></article>
+          <article><span class="beat-index">C—03</span><h3>Guest Producers</h3><p>Other hands, another point of view.</p></article>
+        </div>
+        <p class="future-feature-line"><span class="future-tag">FUTURE FEATURE</span> Music generation and AI conversation are ideas for later, not working services in this app.</p>
+      </div>
+      <div class="benchmark-panel">
+        <div><span class="section-number">UNDER THE HOOD</span><h3>Undo, measured.</h3><p>Same workload, two ways to find the newest entry. Results are measured in this browser; your numbers may vary.</p></div>
+        <div class="benchmark-results" id="benchmark-results" aria-live="polite"><span class="benchmark-loading">RUNNING A SMALL TEST…</span></div>
+        <button id="benchmark-button" class="text-button" type="button">RUN IT AGAIN ↗</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="wordmark" href="#home">P/M<span>.</span></a>
+    <p>Made for the parts you don't post.</p>
+    <span class="mono-label">LOCAL BY DESIGN · NO ACCOUNT NEEDED</span>
+  </footer>
+
+  <dialog id="order-dialog" class="order-dialog" aria-labelledby="dialog-title">
+    <button class="dialog-close" id="dialog-close" type="button" aria-label="Close preview">×</button>
+    <span class="section-number">A NOTE FROM THE LABEL</span>
+    <h2 id="dialog-title">Someday,<br>on vinyl.</h2>
+    <p>Physical album ordering is a future feature. This preview doesn't place an order, collect your details, or process a payment.</p>
+    <button class="button button-light" id="dialog-done" type="button">Got it.</button>
+  </dialog>
+</body>
+</html>
